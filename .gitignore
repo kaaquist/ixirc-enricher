@@ -35,3 +35,6 @@ target/
 # SCIO specific
 .bigquery
 .repl
+
+# Word count folder
+wc/
