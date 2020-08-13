@@ -26,6 +26,6 @@ object Enricher extends LazyLogging {
       .saveAsTextFile(output)
 
     val result = sc.run().waitUntilFinish()
-    logger.info(s"This is a test!  :: This here is the result :: $result")
+    logger.info(s"This is a test!  :: This here is the result")
   }
 }
