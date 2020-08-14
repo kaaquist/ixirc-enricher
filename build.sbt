@@ -25,21 +25,21 @@ lazy val root: Project = project
     publish / skip := true,
     run / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Flat,
     libraryDependencies ++= Seq(
-      "com.spotify" %% "scio-core" % scioVersion,
-      "com.spotify" %% "scio-test" % scioVersion % Test,
-      "org.apache.beam" % "beam-runners-direct-java" % beamVersion,
-      "org.apache.beam" % "beam-runners-google-cloud-dataflow-java" % beamVersion,
-      "org.apache.beam" % "beam-runners-flink-1.10" % beamVersion excludeAll (
+      "com.spotify"                                 %% "scio-core"                                    % scioVersion,
+      "com.spotify"                                 %% "scio-test"                                    % scioVersion % Test,
+      "org.apache.beam"                             % "beam-runners-direct-java"                      % beamVersion,
+      "org.apache.beam"                             % "beam-runners-google-cloud-dataflow-java"       % beamVersion,
+      "org.apache.beam"                             % "beam-runners-flink-1.10"                       % beamVersion excludeAll (
         ExclusionRule("com.twitter", "chill_2.11"),
         ExclusionRule("org.apache.flink", "flink-clients_2.11"),
         ExclusionRule("org.apache.flink", "flink-runtime_2.11"),
         ExclusionRule("org.apache.flink", "flink-streaming-java_2.11")
       ),
-      "org.apache.flink" %% "flink-clients" % flinkVersion,
-      "org.apache.flink" %% "flink-runtime" % flinkVersion,
-      "org.apache.flink" %% "flink-streaming-java" % flinkVersion,
-      "org.slf4j" % "slf4j-simple" % "1.7.25",
+      "org.apache.flink"                            %% "flink-clients"                                % flinkVersion,
+      "org.apache.flink"                            %% "flink-runtime"                                % flinkVersion,
+      "org.apache.flink"                            %% "flink-streaming-java"                         % flinkVersion,
       "com.typesafe.scala-logging"                  %% "scala-logging"                                % "3.9.2",
+      "ch.qos.logback"                              % "logback-classic"                               % "1.2.3",
       "com.github.pureconfig"                       %% "pureconfig"                                   % "0.11.1"
     )
   )
