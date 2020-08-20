@@ -1,5 +1,6 @@
 package com.funny
 
+import com.funny.utils.Config
 import com.typesafe.scalalogging.LazyLogging
 import org.joda.time.Duration
 /*
@@ -28,7 +29,7 @@ object Enricher extends LazyLogging {
     def setInputSubscription(value: ValueProvider[String]): Unit
 
     @Description("The Cloud Pub/Sub topic to write to")
-    @Required
+    //@Required
     def getOutputTopic: ValueProvider[String]
     def setOutputTopic(value: ValueProvider[String]): Unit
   }
@@ -44,15 +45,17 @@ object Enricher extends LazyLogging {
   }
 
   def run(options: Options): Unit = {
+    val config = Config.theConf.gcpConf
     val sc = ScioContext(options)
+    val subscription = config.pubsubSubscription
 
-    val inputIO = PubsubIO.readStrings().fromSubscription(options.getInputSubscription)
+    val inputIO = PubsubIO.readStrings().fromSubscription(subscription)
     val outputIO = PubsubIO.writeStrings().to(options.getOutputTopic)
     sc.customInput("input", inputIO).withFixedWindows(Duration.standardMinutes(10)).withGlobalWindow()
-      .distinctBy(s =>{
-        s.endsWith("yes men!")
-      })
-      .saveAsCustomOutput("output", outputIO)
+      .distinctBy(releases => {
+        releases.endsWith("yes men!")
+      }).map(ff => logger.info(s"Result $ff"))
+      //.saveAsCustomOutput("output", outputIO)
     sc.run()
     ()
   }
