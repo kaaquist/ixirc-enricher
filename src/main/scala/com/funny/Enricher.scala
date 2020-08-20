@@ -1,8 +1,7 @@
 package com.funny
 
-import com.spotify.scio._
 import com.typesafe.scalalogging.LazyLogging
-
+import org.joda.time.Duration
 /*
 sbt "runMain [PACKAGE].Enricher
   --project=[PROJECT] --runner=DataflowRunner --zone=[ZONE]
@@ -10,22 +9,51 @@ sbt "runMain [PACKAGE].Enricher
   --output=gs://[BUCKET]/[PATH]/wordcount"
 */
 
+import com.spotify.scio._
+import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO
+import org.apache.beam.sdk.options.{
+  Description,
+  PipelineOptions,
+  PipelineOptionsFactory,
+  StreamingOptions,
+  ValueProvider
+}
+import org.apache.beam.sdk.options.Validation.Required
+
 object Enricher extends LazyLogging {
+  trait Options extends PipelineOptions with StreamingOptions {
+    @Description("The Cloud Pub/Sub subscription to read from")
+    @Required
+    def getInputSubscription: ValueProvider[String]
+    def setInputSubscription(value: ValueProvider[String]): Unit
+
+    @Description("The Cloud Pub/Sub topic to write to")
+    @Required
+    def getOutputTopic: ValueProvider[String]
+    def setOutputTopic(value: ValueProvider[String]): Unit
+  }
+
   def main(cmdlineArgs: Array[String]): Unit = {
-    val (sc, args) = ContextAndArgs(cmdlineArgs)
+    PipelineOptionsFactory.register(classOf[Options])
+    val options = PipelineOptionsFactory
+      .fromArgs(cmdlineArgs: _*)
+      .withValidation
+      .as(classOf[Options])
+    options.setStreaming(true)
+    run(options)
+  }
 
-    val exampleData = "gs://dataflow-samples/shakespeare/kinglear.txt"
-    val input = args.getOrElse("input", exampleData)
-    val output = args("output")
+  def run(options: Options): Unit = {
+    val sc = ScioContext(options)
 
-    sc.textFile(input)
-      .map(_.trim)
-      .flatMap(_.split("[^a-zA-Z']+").filter(_.nonEmpty))
-      .countByValue
-      .map(t => t._1 + ": " + t._2)
-      .saveAsTextFile(output)
-
-    val result = sc.run().waitUntilFinish()
-    logger.info(s"This is a test!  :: This here is the result")
+    val inputIO = PubsubIO.readStrings().fromSubscription(options.getInputSubscription)
+    val outputIO = PubsubIO.writeStrings().to(options.getOutputTopic)
+    sc.customInput("input", inputIO).withFixedWindows(Duration.standardMinutes(10)).withGlobalWindow()
+      .distinctBy(s =>{
+        s.endsWith("yes men!")
+      })
+      .saveAsCustomOutput("output", outputIO)
+    sc.run()
+    ()
   }
 }
