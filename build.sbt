@@ -40,7 +40,9 @@ lazy val root: Project = project
       "org.apache.flink"                            %% "flink-streaming-java"                         % flinkVersion,
       "com.typesafe.scala-logging"                  %% "scala-logging"                                % "3.9.2",
       "ch.qos.logback"                              % "logback-classic"                               % "1.2.3",
-      "com.github.pureconfig"                       %% "pureconfig"                                   % "0.11.1"
+      "com.github.pureconfig"                       %% "pureconfig"                                   % "0.11.1",
+      // Be aware that this here is a reference to a local ivy or maven repository: https://github.com/kaaquist/ixirc-schemas
+      "com.funny"                                   %% "ixirc-schemas"                                % "0.0.1",
     )
   )
   .enablePlugins(JavaAppPackaging)
