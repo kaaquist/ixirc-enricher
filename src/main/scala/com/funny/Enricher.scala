@@ -1,5 +1,8 @@
 package com.funny
 
+import java.util.Base64
+
+import com.funny.release.Releases
 import com.funny.utils.Config
 import com.typesafe.scalalogging.LazyLogging
 import org.joda.time.Duration
@@ -53,8 +56,12 @@ object Enricher extends LazyLogging {
     val outputIO = PubsubIO.writeStrings().to(options.getOutputTopic)
     sc.customInput("input", inputIO).withFixedWindows(Duration.standardMinutes(10)).withGlobalWindow()
       .distinctBy(releases => {
-        releases.endsWith("yes men!")
-      }).map(ff => logger.info(s"Result $ff"))
+        val byteArr = Base64.getDecoder.decode(releases)
+        val yy = Releases.parseFrom(byteArr)
+        yy.releases.map(_.name)
+      }).map(filteredReleases => {
+      Releases.parseFrom(Base64.getDecoder.decode(filteredReleases)).releases.foreach(x => logger.info(x.name))
+    })
       //.saveAsCustomOutput("output", outputIO)
     sc.run()
     ()
